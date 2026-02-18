@@ -13,14 +13,13 @@ def create_tasks(agents: dict, linkedin_url: str):
     review_critique_agent = agents["review_critique_agent"]
     question_architect = agents["question_architect"]
 
-    # 1. Research Task – LinkedIn + web search for career vibe, achievements, non-obvious interests
+    # 1. Research Task – LinkedIn (optional) + web search for career vibe, achievements, non-obvious interests
     research_task = Task(
         description=(
-            "Using the LinkedIn URL and general web search, produce a summary of this person's "
-            "career 'vibe,' key achievements, and non-obvious interests. "
-            "Use the LinkedIn tool with this URL: {linkedin_url} "
-            "Use web search for talks, articles, side projects, or public presence. "
-            "Focus on what would make for good conversation hooks, not just job titles."
+            "Produce a summary of this person's career 'vibe,' key achievements, and non-obvious interests. "
+            "Optionally use the LinkedIn tool with this URL: {linkedin_url} — if it says it is not configured, "
+            "use only web search. Always use web search (Firecrawl) to find them by name/URL: talks, articles, "
+            "side projects, and public presence. Focus on what would make for good conversation hooks, not just job titles."
         ).format(linkedin_url=linkedin_url),
         expected_output=(
             "A structured summary: (1) Career vibe in 2–3 sentences, "
@@ -44,13 +43,14 @@ def create_tasks(agents: dict, linkedin_url: str):
     )
 
     # 3. Critique Task – Evaluate research depth; allow_delegation so manager can send back to Researcher
+    # Prefer to approve when research has substantive content to avoid repeated iterations when testing.
     critique_task = Task(
         description=(
             "Evaluate whether the research produced by the Web Researcher is deep enough. "
             "Compare it against the Personal Context (user's interests and focus). "
-            "If the research is generic or lacks concrete 'hooks' related to the user's interests, "
-            "delegate the task back to the Web Researcher with clear improvement criteria. "
-            "If it meets the bar, approve it for the Question Architect."
+            "Prefer to approve if the research has any substantive content (career vibe, achievements, or interests). "
+            "Only delegate back to the Web Researcher if the research is clearly generic, empty, or lacks any concrete hooks. "
+            "If it meets the bar or is reasonably usable, approve it for the Question Architect."
         ),
         expected_output=(
             "Either: (a) Approval with a one-sentence handoff to the Question Architect, or "

@@ -30,11 +30,11 @@ def create_agents():
         verbose=True,
     )
 
-    # 2. Web Researcher – deep intelligence via web + LinkedIn
+    # 2. Web Researcher – deep intelligence via web + optional LinkedIn
     web_researcher = Agent(
         role="Web Researcher",
-        goal="Gather deep intelligence on the target person: career vibe, key achievements, and non-obvious interests using LinkedIn and the web.",
-        backstory="You are a thorough researcher. You use the LinkedIn tool to get structured profile data and Firecrawl web search to find talks, articles, and public presence. You focus on what is non-obvious and conversation-worthy, not just job titles.",
+        goal="Gather deep intelligence on the target person: career vibe, key achievements, and non-obvious interests. Use LinkedIn when available; otherwise use web search only.",
+        backstory="You are a thorough researcher. If the LinkedIn tool returns that it is not configured, use Firecrawl web search to find this person by name and profile URL—their career, experience, articles, talks, and public presence. When LinkedIn is available, use it for structured profile data. Always use web search for talks, articles, and non-obvious angles. Focus on what is conversation-worthy, not just job titles.",
         tools=[linkedin_tool, firecrawl_tool],
         allow_delegation=False,
         verbose=True,

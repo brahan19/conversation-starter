@@ -33,7 +33,12 @@ class LinkedInTool(BaseTool):
     def _run(self, linkedin_url: str) -> str:
         api_key = os.getenv("PROXYCURL_API_KEY")
         if not api_key:
-            return "Error: PROXYCURL_API_KEY is not set in the environment."
+            return (
+                "LinkedIn API is not configured (PROXYCURL_API_KEY missing). "
+                "Use web search (Firecrawl) instead: search for the person by name and profile URL "
+                "to find their career, achievements, interests, articles, talks, and public presence. "
+                "Extract the same kind of information you would from LinkedIn."
+            )
 
         url = "https://nubela.co/proxycurl/api/v2/linkedin"
         headers = {"Authorization": f"Bearer {api_key}"}

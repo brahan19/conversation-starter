@@ -28,12 +28,16 @@ def run_crew(linkedin_url):
     agents = create_agents()
     task_list = create_tasks(agents, linkedin_url)
 
-    # All five agents; hierarchical process uses manager_llm for the manager
+    # Use gpt-4o-mini for cheaper testing (switch to gpt-4o for production)
+    # Multiple agent responses you see are from the critique loop: if Critique rejects
+    # the research, the manager re-delegates to the Web Researcher, so they run again.
+    cheap_llm = LLM(model="gpt-4o-mini")
     crew = Crew(
         agents=list(agents.values()),
         tasks=task_list,
         process=Process.hierarchical,
-        manager_llm=LLM(model="gpt-4o"),
+        llm=cheap_llm,
+        manager_llm=cheap_llm,
         memory=True,
         verbose=True,
     )
@@ -45,6 +49,7 @@ def run_crew(linkedin_url):
 if __name__ == "__main__":
     import re
     import sys
+    from datetime import datetime
 
     if len(sys.argv) < 2:
         print("Usage: python main.py <linkedin_url>")
@@ -58,9 +63,13 @@ if __name__ == "__main__":
     result_str = str(output) if output is not None else ""
     print(result_str)
 
-    # Optionally save report to a Markdown file
-    slug = re.sub(r"[^a-zA-Z0-9]+", "_", url.strip("/").split("/")[-1] or "report")
-    report_path = "report_{}.md".format(slug)
+    # Save report in reports/ folder: {person_name}_{timestamp}.md
+    person_slug = re.sub(r"[^a-zA-Z0-9]+", "_", url.strip("/").split("/")[-1] or "report")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    report_dir = "reports"
+    os.makedirs(report_dir, exist_ok=True)
+    report_filename = "{}_{}.md".format(person_slug, timestamp)
+    report_path = os.path.join(report_dir, report_filename)
     if result_str.strip():
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(result_str)

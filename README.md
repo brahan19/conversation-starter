@@ -4,29 +4,37 @@ A **CrewAI** multi-agent project using the **hierarchical process** to turn a Li
 
 ## Requirements
 
-- Python 3.10+
-- API keys: **OpenAI**, **Proxycurl**, **Firecrawl** (see below)
+- **Python 3.10, 3.11, or 3.12** (CrewAI does not support 3.9 or below)
+- API keys: **OpenAI**, **Firecrawl** (Proxycurl optional)
 
 ## Setup
 
-1. **Create a virtual environment and install dependencies**
+1. **Use Python 3.10+ for the virtual environment**
+
+   Check your Python version: `python3 --version` or `python3.10 --version`. If you have 3.9 or lower, install Python 3.10+ (e.g. from [python.org](https://www.python.org/downloads/) or Homebrew: `brew install python@3.11`).
+
+2. **Create the virtual environment with Python 3.10+**
 
    ```bash
-   python3 -m venv venv
+   # Use python3.11 or python3.10 if that's what you have; plain python3 only if it's already 3.10+
+   python3.11 -m venv venv
+   # or: python3.10 -m venv venv
    source venv/bin/activate   # Windows: venv\Scripts\activate
    pip install --upgrade pip
    pip install --index-url https://pypi.org/simple/ -r requirements.txt
    ```
 
-   If you see `Cannot fetch index base URL https://pypi.python.org/simple/`, your pip is using the old index. Use the command above with `--index-url https://pypi.org/simple/` or run `pip install --upgrade pip` first.
+   If you see `No matching distribution found for crewai>=0.80.0`, your venv is using Python &lt; 3.10. Delete `venv`, then create it with `python3.10` or `python3.11` as above.
+
+   If you see `Cannot fetch index base URL https://pypi.python.org/simple/`, use `--index-url https://pypi.org/simple/` or run `pip install --upgrade pip` first.
 
 2. **Configure environment**
 
    Copy `.env.example` to `.env` and set:
 
    - `OPENAI_API_KEY` – for CrewAI agents and the hierarchical manager (e.g. GPT-4o)
-   - `PROXYCURL_API_KEY` – for LinkedIn profile data ([nubela.co/proxycurl](https://nubela.co/proxycurl/))
    - `FIRECRAWL_API_KEY` – for web search ([firecrawl.dev](https://firecrawl.dev))
+   - `PROXYCURL_API_KEY` – *optional*; for LinkedIn profile data ([nubela.co/proxycurl](https://nubela.co/proxycurl/)). If not set, the researcher uses web search only.
 
 3. **Personal context**
 
