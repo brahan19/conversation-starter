@@ -3,6 +3,8 @@ Networking research crew: hierarchical CrewAI crew that takes a LinkedIn URL
 and produces pointed questions and conversation starters using research,
 personal context, critique, and a question architect.
 """
+from __future__ import annotations
+
 import os
 
 try:
@@ -20,14 +22,14 @@ if not os.getenv("OPENAI_API_KEY"):
     print("Warning: OPENAI_API_KEY not set. Set it in .env for the crew to run.")
 
 
-def run_crew(linkedin_url):
+def run_crew(linkedin_url: str, name: str | None = None, current_work: str | None = None):
     """
-    Run the hierarchical crew with the given LinkedIn profile URL.
+    Run the hierarchical crew with the given LinkedIn profile URL and optional disambiguation inputs.
+    name and current_work help disambiguate when many people share the same name.
     Returns the crew's output (final task result).
-    The Orchestrator is used as the manager; its loop is capped at 4 iterations per task.
     """
     agents = create_agents()
-    task_list = create_tasks(agents, linkedin_url)
+    task_list = create_tasks(agents, linkedin_url, name=name, current_work=current_work)
 
     # Orchestrator is the manager; it must not be in the agents list (CrewAI requirement).
     worker_agents = [
@@ -59,24 +61,49 @@ def run_crew(linkedin_url):
 
 
 if __name__ == "__main__":
+    import argparse
     import re
     import sys
     from datetime import datetime
 
-    if len(sys.argv) < 2:
-        print("Usage: python main.py <linkedin_url>")
-        print("Example: python main.py 'https://www.linkedin.com/in/williamhgates/'")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Run the Conversation Starter crew: research a LinkedIn profile and produce questions and conversation starters."
+    )
+    parser.add_argument(
+        "linkedin_url",
+        help="LinkedIn profile URL (e.g. https://www.linkedin.com/in/username/)",
+    )
+    parser.add_argument(
+        "--name",
+        default=None,
+        help="Person's full name (disambiguates when many people share the same name)",
+    )
+    parser.add_argument(
+        "--current-work",
+        dest="current_work",
+        default=None,
+        help="Person's current role/company (e.g. 'CTO at Acme Inc') for disambiguation",
+    )
+    args = parser.parse_args()
 
-    url = sys.argv[1].strip()
-    print("Running crew for LinkedIn URL: {}\n".format(url))
-    output = run_crew(url)
+    url = args.linkedin_url.strip()
+    name = args.name.strip() if args.name else None
+    current_work = args.current_work.strip() if args.current_work else None
+
+    print("Running crew for LinkedIn URL: {}".format(url))
+    if name:
+        print("  Name (disambiguation): {}".format(name))
+    if current_work:
+        print("  Current work (disambiguation): {}".format(current_work))
+    print()
+    output = run_crew(url, name=name, current_work=current_work)
     print("\n--- Crew output ---\n")
     result_str = str(output) if output is not None else ""
     print(result_str)
 
-    # Save report in reports/ folder: {person_name}_{timestamp}.md
-    person_slug = re.sub(r"[^a-zA-Z0-9]+", "_", url.strip("/").split("/")[-1] or "report")
+    # Save report in reports/ folder: {person_slug}_{timestamp}.md (prefer name-based slug when provided)
+    slug_source = (name or url.strip("/").split("/")[-1] or "report").lower()
+    person_slug = re.sub(r"[^a-zA-Z0-9]+", "_", slug_source)
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     report_dir = "reports"
     os.makedirs(report_dir, exist_ok=True)

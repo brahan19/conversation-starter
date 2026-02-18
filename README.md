@@ -52,8 +52,18 @@ A **CrewAI** multi-agent project using the **hierarchical process** to turn a Li
 ## Run
 
 ```bash
+# Required: LinkedIn profile URL
 python main.py "https://www.linkedin.com/in/<username>/"
+
+# Optional but recommended: name and current work to disambiguate when many people share the same name
+python main.py "https://www.linkedin.com/in/johndoe/" --name "John Doe" --current-work "CTO at Acme Inc"
 ```
+
+- **`linkedin_url`** (required) – LinkedIn profile URL.
+- **`--name`** (optional) – Person's full name. Used by Research and Evidence Filter to target web search and filter results so they refer to this person, not someone else with the same name.
+- **`--current-work`** (optional) – Person's current role/company (e.g. `CTO at Acme Inc`). Further disambiguates search and filtering.
+
+When `--name` is provided, the report file is named using the name (e.g. `reports/john_doe_2026-02-18_12-00-00.md`); otherwise the LinkedIn URL slug is used.
 
 The crew will execute 5 tasks in sequence:
 
@@ -78,9 +88,9 @@ Reports are saved to `reports/{person_slug}_{timestamp}.md`.
 
 ### Tasks (5 total)
 
-1. **Research Task** – LinkedIn first (source of truth), then web search for additional context. Must cite source URLs. Grounds all facts in tool output.
+1. **Research Task** – LinkedIn first (source of truth), then web search for additional context. Uses **name** and **current work** (when provided) to disambiguate search. Must cite source URLs. Grounds all facts in tool output.
 2. **Context Sync Task** – Extracts your focus areas from `my_interests.md`.
-3. **Evidence Filter Task** – Filters research to keep only facts with concrete evidence they refer to the target person.
+3. **Evidence Filter Task** – Filters research to keep only facts with concrete evidence they refer to the target person; uses **name** and **current work** when provided to reject results about other people with the same name.
 4. **Critique Task** – Evaluates filtered research on depth and factual grounding. Can delegate back to researcher.
 5. **Output Task** – Produces Markdown report with questions and starters based only on filtered research.
 
@@ -88,7 +98,7 @@ Reports are saved to `reports/{person_slug}_{timestamp}.md`.
 
 - **Grounding rules**: All tasks require facts to be traceable to tool output; no inference or invention.
 - **LinkedIn as source of truth**: When available, LinkedIn data (headline, experience, education) is treated as canonical; web search only adds extra context.
-- **Evidence filtering**: Web results are filtered to remove those without concrete evidence they refer to the target person.
+- **Evidence filtering**: Web results are filtered to remove those without concrete evidence they refer to the target person. When **name** and **current work** are provided, they are used to ensure results match this specific person (not another with the same name).
 - **Factual checks**: Critique agent rejects unsupported or invented details (e.g. specific numbers, achievements not stated).
 - **Conservative output**: Question Architect prefers generic but accurate over specific but unsupported.
 

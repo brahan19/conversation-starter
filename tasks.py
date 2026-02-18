@@ -4,15 +4,39 @@ CrewAI tasks for the networking research crew (hierarchical process).
 from crewai import Task, Agent
 
 
-def create_tasks(agents: dict, linkedin_url: str):
+def create_tasks(
+    agents: dict,
+    linkedin_url: str,
+    name: str | None = None,
+    current_work: str | None = None,
+):
     """
-    Create the five tasks. Pass the linkedin_url for Research and Evidence Filter.
+    Create the five tasks. Pass linkedin_url for Research and Evidence Filter.
+    name and current_work are used to disambiguate when many people share the same name.
     """
     web_researcher = agents["web_researcher"]
     personal_context_agent = agents["personal_context_agent"]
     evidence_filter_agent = agents["evidence_filter_agent"]
     review_critique_agent = agents["review_critique_agent"]
     question_architect = agents["question_architect"]
+
+    # Disambiguation context for tasks (avoid mixing into prompts when not provided)
+    name_ctx = name.strip() if name else ""
+    current_work_ctx = current_work.strip() if current_work else ""
+    disambiguation_note = ""
+    if name_ctx and current_work_ctx:
+        disambiguation_note = (
+            " The target person's name is \"{name}\" and their current work (company/role) is \"{current_work}\". "
+            "Use these to disambiguate: e.g. search for both name and current work so results refer to this person, not someone else with the same name."
+        ).format(name=name_ctx, current_work=current_work_ctx)
+    elif name_ctx:
+        disambiguation_note = (
+            " The target person's name is \"{name}\". Use it to disambiguate web search so results refer to this person."
+        ).format(name=name_ctx)
+    elif current_work_ctx:
+        disambiguation_note = (
+            " The target person's current work (company/role) is \"{current_work}\". Use it to disambiguate web search."
+        ).format(current_work=current_work_ctx)
 
     # 1. Research Task – LinkedIn as source of truth when available; web for extra context. Ground all facts.
     research_task = Task(
@@ -22,11 +46,11 @@ def create_tasks(agents: dict, linkedin_url: str):
             "(headline, experience, education) as the source of truth for job titles, companies, and dates. "
             "Use web search (Firecrawl) only to add additional information (talks, articles, side projects) that "
             "clearly refers to this person; do not let web snippets contradict or replace LinkedIn facts. "
-            "If LinkedIn is not configured, use only web search. "
+            "If LinkedIn is not configured, use only web search.{disambiguation}\n\n"
             "CRITICAL: Only include facts that appear in the tool results. Do not infer, assume, or invent any "
             "details (e.g. numbers, titles, achievements). If a claim is not clearly stated in the tool output, omit it. "
             "Prefer saying 'not found' over guessing. Focus on conversation-worthy hooks that are explicitly supported."
-        ).format(linkedin_url=linkedin_url),
+        ).format(linkedin_url=linkedin_url, disambiguation=disambiguation_note),
         expected_output=(
             "A structured summary: (1) Career vibe in 2–3 sentences, (2) Key achievements (bullets), "
             "(3) Non-obvious interests or angles (bullets). For each fact from web search, include the source URL "
@@ -37,17 +61,33 @@ def create_tasks(agents: dict, linkedin_url: str):
     )
 
     # 2. Evidence Filter Task – Keep only research with concrete evidence it refers to the target person
+    filter_disambiguation = ""
+    if name_ctx and current_work_ctx:
+        filter_disambiguation = (
+            " The target person's name is \"{name}\" and current work is \"{current_work}\". "
+            "Only keep results that clearly refer to this person (matching name and preferably current work/company); "
+            "remove results that could be about a different person with the same name."
+        ).format(name=name_ctx, current_work=current_work_ctx)
+    elif name_ctx:
+        filter_disambiguation = (
+            " The target person's name is \"{name}\". Only keep results that clearly refer to this person, not someone else with the same name."
+        ).format(name=name_ctx)
+    elif current_work_ctx:
+        filter_disambiguation = (
+            " The target person's current work is \"{current_work}\". Use it to verify results refer to this person."
+        ).format(current_work=current_work_ctx)
+
     filter_task = Task(
         description=(
-            "You receive the Web Researcher's summary and the target person's LinkedIn URL: {linkedin_url}. "
-            "Filter out any fact or web search result that does NOT have concrete evidence it refers to this specific person. "
+            "You receive the Web Researcher's summary and the target person's LinkedIn URL: {linkedin_url}.{filter_disc}"
+            " Filter out any fact or web search result that does NOT have concrete evidence it refers to this specific person. "
             "Keep only: (1) Facts from LinkedIn (they refer to this profile). "
             "(2) Web results where the source explicitly names the person AND matches their company/role (e.g. same company as LinkedIn), "
             "or the URL clearly identifies them (e.g. their blog, their talk, their company profile naming them). "
             "Remove: generic claims, results that could be about another person with the same name, any fact whose source "
             "does not clearly identify the target person. Output a filtered research summary with only the facts that pass; "
             "do not add new information. If in doubt, exclude the fact."
-        ).format(linkedin_url=linkedin_url),
+        ).format(linkedin_url=linkedin_url, filter_disc=filter_disambiguation),
         expected_output=(
             "A filtered research summary with the same structure (career vibe, key achievements, interests) but containing "
             "only facts that have concrete evidence they refer to the target person. List which items were removed and why "

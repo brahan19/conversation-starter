@@ -4,14 +4,13 @@
 - Multi-agent systems and AI orchestration
 - Developer experience and tooling
 - Technical writing and documentation
+- Aspiring entrepreneur planning to build something in sports tech. 
 
 ## Interests
 - LLM applications and prompt engineering
-- Python and async programming
-- Open source and community building
-- Hackathon culture and automation bots
 - Engineering leadership
 - Techie wanting to do non tech work as well.
+- Aspiring entrepreneur planning to build something in sports tech. 
 
 ## Expertise
 - Software architecture
