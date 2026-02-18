@@ -49,13 +49,21 @@ def create_tasks(
             "If LinkedIn is not configured, use only web search.{disambiguation}\n\n"
             "CRITICAL: Only include facts that appear in the tool results. Do not infer, assume, or invent any "
             "details (e.g. numbers, titles, achievements). If a claim is not clearly stated in the tool output, omit it. "
-            "Prefer saying 'not found' over guessing. Focus on conversation-worthy hooks that are explicitly supported."
+            "Prefer saying 'not found' over guessing. Focus on conversation-worthy hooks that are explicitly supported.\n\n"
+            "If you receive feedback from the Review & Critique Agent (in your context), carefully review their "
+            "rejection reasons and specific instructions. Address each issue they identified: fix unsupported claims, "
+            "add missing sources, search for more concrete information, or remove generic content as directed. "
+            "Do not repeat the same mistakes that led to the rejection."
         ).format(linkedin_url=linkedin_url, disambiguation=disambiguation_note),
         expected_output=(
-            "A structured summary: (1) Career vibe in 2–3 sentences, (2) Key achievements (bullets), "
+            "A structured summary: (1) Career vibe with enough detail for a narrative (include career progression, "
+            "key transitions, motivations, and notable experiences), (2) Key achievements (bullets), "
             "(3) Non-obvious interests or angles (bullets). For each fact from web search, include the source URL "
             "(e.g. 'Source: https://...') so the Evidence Filter can verify the result refers to this person. "
-            "Every bullet must be traceable to a specific tool result; do not add unsupported claims."
+            "Every bullet must be traceable to a specific tool result; do not add unsupported claims. "
+            "Gather enough information about their career journey, education, major roles, transitions, and motivations "
+            "to enable writing a compelling 3-4 paragraph life story. If this is a revision based on critique feedback, "
+            "explicitly address the issues raised in the feedback."
         ),
         agent=web_researcher,
     )
@@ -124,7 +132,11 @@ def create_tasks(
         ),
         expected_output=(
             "Either: (a) Approval with a one-sentence handoff to the Question Architect, or "
-            "(b) Rejection with specific instructions for the Web Researcher."
+            "(b) Rejection with CLEAR, ACTIONABLE feedback for the Web Researcher. When rejecting, you MUST include: "
+            "(1) Specific reasons for rejection (e.g. 'Claim X lacks source', 'Too generic - missing concrete achievements', "
+            "'Unsupported detail Y was included'), (2) Concrete instructions on what to fix (e.g. 'Search for specific projects', "
+            "'Include source URLs for all claims', 'Remove unsupported achievement Z'). This feedback will be passed to the "
+            "Web Researcher so they can address the issues without repeating the same mistakes."
         ),
         agent=review_critique_agent,
         context=[filter_task, context_sync_task],
@@ -135,20 +147,27 @@ def create_tasks(
     output_task = Task(
         description=(
             "Produce a Markdown report for the user with: "
-            "(1) A brief recap of the person's career vibe and key points. "
-            "(2) Five Pointed Questions – specific questions that bridge their background with the user's current state. "
-            "(3) Three Conversation Starters – openers that connect their experience to the user's interests. "
-            "CRITICAL: Base the recap and all questions/starters only on the FILTERED research summary provided "
+            "(1) A detailed Career Vibe section (3-4 paragraphs) that tells the person's life story. Write this as a "
+            "narrative that flows chronologically or thematically, covering: their background/education, career progression "
+            "and key transitions, major roles and achievements, what drives them, and their current focus. Make it engaging "
+            "and help the reader understand their journey and motivations. Use transitions between paragraphs to create a "
+            "cohesive story. Base this entirely on the FILTERED research summary - weave together the facts into a narrative, "
+            "but do not invent or infer details not present in the research. "
+            "(2) Key Points section with bullet points highlighting major achievements and roles. "
+            "(3) Ten Pointed Questions – specific questions that bridge their background with the user's current state. "
+            "(4) Ten Conversation Starters – openers that connect their experience to the user's interests. "
+            "CRITICAL: Base the Career Vibe narrative and all questions/starters only on the FILTERED research summary provided "
             "(the output of the Research Evidence Filter). Do not add any fact about the person that is not in that "
-            "filtered research. If the research is sparse, keep the recap and questions conservative and generic. "
-            "Prefer generic but accurate openers over specific but unsupported ones. "
+            "filtered research. If the research is sparse, keep the narrative conservative and generic rather than inventing details. "
+            "Prefer generic but accurate descriptions over specific but unsupported ones. "
             "If the person has an expertise or area the user does not yet have, append 'What I can learn from them' "
-            "and, if relevant, use the 'Append to My Interests' tool to add a new Interest entry to my_interests.md."
+            "with up to ten items and, if relevant, use the 'Append to My Interests' tool to add a new Interest entry to my_interests.md."
         ),
         expected_output=(
-            "A Markdown report containing: recap, 5 Pointed Questions, 3 Conversation Starters, "
-            "and optionally 'What I can learn from them' and an updated my_interests.md (via the tool). "
-            "Every claim about the person in the recap must appear in the filtered research; no unsupported details."
+            "A Markdown report containing: a detailed Career Vibe section (3-4 paragraphs telling their life story), "
+            "Key Points (bullets), 10 Pointed Questions, 10 Conversation Starters, "
+            "and optionally 'What I can learn from them' (up to 10 items) and an updated my_interests.md (via the tool). "
+            "Every claim about the person in the Career Vibe narrative must appear in the filtered research; no unsupported details."
         ),
         agent=question_architect,
         context=[filter_task, context_sync_task, critique_task],

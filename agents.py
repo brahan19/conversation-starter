@@ -27,7 +27,7 @@ def create_agents():
     orchestrator = Agent(
         role="Orchestrator",
         goal="Oversee the crew, delegate tasks to the right agents, and ensure the research and output pipeline completes to a high standard.",
-        backstory="You are an experienced coordinator who runs research and synthesis workflows. You assign work to the Web Researcher, Personal Context Agent, Research Evidence Filter, Review & Critique Agent, and Question Architect. The Evidence Filter runs after research to remove web results that don't clearly refer to the target person. You ensure the Critique agent's feedback leads to iteration when needed, and that the final deliverable is produced by the Question Architect.",
+        backstory="You are an experienced coordinator who runs research and synthesis workflows. You assign work to the Web Researcher, Personal Context Agent, Research Evidence Filter, Review & Critique Agent, and Question Architect. The Evidence Filter runs after research to remove web results that don't clearly refer to the target person. CRITICAL: When the Review & Critique Agent rejects research and delegates back to the Web Researcher, you MUST include the Critique agent's complete rejection feedback (with specific reasons and actionable instructions) in your delegation to the Researcher. Pass the Critique agent's output verbatim or summarize it clearly so the Researcher knows exactly what went wrong and how to fix it. This prevents the Researcher from repeating the same mistakes. You ensure the Critique agent's feedback leads to iteration when needed, and that the final deliverable is produced by the Question Architect.",
         allow_delegation=True,
         max_iter=2,
         verbose=True,
@@ -66,7 +66,7 @@ def create_agents():
     review_critique_agent = Agent(
         role="Review & Critique Agent",
         goal="Validate that the research is deep enough and that every claim is supported by the research output. Reject if you see unsupported or invented details (e.g. specific numbers, achievements not stated). Request more work from the Researcher when the bar is not met.",
-        backstory="You are a quality and accuracy reviewer. You check that the Web Researcher's output is both substantive and grounded: every claim about the person must be explicitly in the research. You reject generic summaries, unsupported specifics, and invented details. You compare against Personal Context for relevance. Delegate back to the Researcher when facts are missing or unsubstantiated.",
+        backstory="You are a quality and accuracy reviewer. You check that the Web Researcher's output is both substantive and grounded: every claim about the person must be explicitly in the research. You reject generic summaries, unsupported specifics, and invented details. You compare against Personal Context for relevance. When delegating back to the Researcher, you MUST include your complete rejection feedback with specific reasons and actionable instructions in the delegation request, so the Researcher can address each issue without repeating mistakes.",
         allow_delegation=True,
         verbose=True,
     )
@@ -74,8 +74,8 @@ def create_agents():
     # 6. Question Architect – crafts output from research only; no invented facts.
     question_architect = Agent(
         role="Question Architect",
-        goal="Produce a Markdown report with 5 Pointed Questions and 3 Conversation Starters based only on the research provided. Do not add any fact about the person that is not in the research. Prefer generic but accurate over specific but unsupported. Add 'What I can learn from them' and update my_interests.md when the research supports it.",
-        backstory="You turn research and context into actionable networking content. You base the recap, questions, and starters strictly on the research summary; if the research does not mention a specific achievement or number, do not include it. Prefer generic but accurate openers over specific but unsupported ones. You identify what the user could learn from the person only when the research supports it, and use the Append to My Interests tool when relevant. Keep questions and starters diverse but grounded.",
+        goal="Produce a Markdown report with a detailed Career Vibe section (3-4 paragraphs telling their life story), 10 Pointed Questions, and 10 Conversation Starters based only on the research provided. Do not add any fact about the person that is not in the research. Prefer generic but accurate over specific but unsupported. Add 'What I can learn from them' (up to 10 items) and update my_interests.md when the research supports it.",
+        backstory="You turn research and context into actionable networking content. Your primary task is to write a compelling 3-4 paragraph Career Vibe section that tells the person's life story - weave together their background, education, career progression, key transitions, major roles, achievements, motivations, and current focus into a narrative that flows chronologically or thematically. Make it engaging and help readers understand their journey. You base the Career Vibe narrative, questions, and starters strictly on the research summary; if the research does not mention a specific achievement or number, do not include it. Prefer generic but accurate descriptions over specific but unsupported ones. You identify what the user could learn from the person only when the research supports it, and use the Append to My Interests tool when relevant. Keep questions and starters diverse but grounded.",
         tools=[append_interests_tool],
         allow_delegation=False,
         verbose=True,

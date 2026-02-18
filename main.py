@@ -52,7 +52,7 @@ def run_crew(linkedin_url: str, name: str | None = None, current_work: str | Non
         process=Process.hierarchical,
         llm=cheap_llm,
         manager_agent=agents["orchestrator"],
-        memory=True,
+        memory=False,
         verbose=True,
     )
 

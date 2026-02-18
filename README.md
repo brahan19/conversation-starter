@@ -71,7 +71,7 @@ The crew will execute 5 tasks in sequence:
 2. **Context Sync** – Reads `my_interests.md` to represent you.
 3. **Evidence Filter** – Filters out web search results that don't have concrete evidence they refer to the target person (same name + company/role match, or explicit mention).
 4. **Critique** – Validates filtered research depth and factual grounding; rejects unsupported or invented claims; can delegate back to the researcher.
-5. **Output** – Produces a Markdown report with 5 Pointed Questions and 3 Conversation Starters based only on filtered research. Optionally adds "What I can learn from them" and appends new interests to `my_interests.md`.
+5. **Output** – Produces a Markdown report with 10 Pointed Questions and 10 Conversation Starters based only on filtered research. Optionally adds "What I can learn from them" (up to 10 items) and appends new interests to `my_interests.md`.
 
 Reports are saved to `reports/{person_slug}_{timestamp}.md`.
 
@@ -131,9 +131,9 @@ Reports are saved to `reports/{person_slug}_{timestamp}.md`.
 The crew produces a Markdown report with:
 - Career vibe recap
 - Key points (filtered and grounded)
-- 5 Pointed Questions (bridging their background with your interests)
-- 3 Conversation Starters (grounded in filtered research)
-- Optional "What I can learn from them" section
+- 10 Pointed Questions (bridging their background with your interests)
+- 10 Conversation Starters (grounded in filtered research)
+- Optional "What I can learn from them" section (up to 10 items)
 - Optional update to `my_interests.md`
 
 All facts in the report are traceable to the filtered research; no unsupported claims are included.
